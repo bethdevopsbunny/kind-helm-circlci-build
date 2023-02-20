@@ -1,5 +1,9 @@
 # Kind-Helm-CircleCI-build
-"helm deployed, kind owned, circleci stored concept"
+"helm deployed, kind owned, circleci stored concept"<br>
+
+![image](https://user-images.githubusercontent.com/80027170/220209024-6570349f-105b-4765-b5c4-f66433321876.png) ![image](https://user-images.githubusercontent.com/80027170/220208870-fa4ca514-7500-4851-98c7-cb4a64c86692.png) ![image](https://user-images.githubusercontent.com/80027170/220208963-57382237-f168-4ef3-ba43-55ea2660f423.png) 
+
+
 
 - using the circle ci docker execution environment - https://circleci.com/docs/using-docker/ <br>
 - install the kubernetes in a container implementation at kind - https://kind.sigs.k8s.io/<br>
