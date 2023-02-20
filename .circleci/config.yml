@@ -1,0 +1,82 @@
+version: 2.1
+
+jobs:
+  init:
+    docker:
+      - image: cimg/go:1.20.1
+    steps:
+      - checkout
+      - persist_to_workspace:
+          root: /home/circleci
+          paths: project
+
+  kind:
+    docker:
+      - image: cimg/go:1.20.1
+    steps:
+      - setup_remote_docker
+      - attach_workspace:
+          at: /home/circleci
+
+      ## first we must install the kind kubernetes tool
+      ## https://kind.sigs.k8s.io/
+
+      - run:
+          name: install kind
+          command: |
+            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
+            chmod +x ./kind
+            sudo mv ./kind /usr/local/bin/kind
+
+      ## now we have to build the kind cluster
+      ## update the kubeconfig with network config from this kind container
+      ## create a jump box within the same docker network as the kind cluster
+      ## pass the kube config into the jump box
+
+      - run:
+          name: build kind cluster
+          command: |
+            kind create cluster
+            
+            ## update the kubeconfig with the out put of the docker commands
+            
+            KIND_CONTAINER_IP=$(docker inspect kind-control-plane | jq  .[0].NetworkSettings.Networks.kind.IPAddress -r)
+            export "NEWIP=https://$KIND_CONTAINER_IP:6443"
+            yq -i '.clusters[0].cluster.server = strenv(NEWIP)' ../.kube/config
+            
+            
+            # create a hop box in the kind docker network
+            docker run --name hopbox -p 80:80 -d --network kind nginx
+            
+            
+            docker cp ../.kube/config hopbox:/
+            docker exec hopbox bash -c 'mkdir /root/.kube; cp config /root/.kube' 
+      
+      ## install helm in the jump box and install tools to interogate the cluster
+      ## install tomcat helm chart
+      ## use the jump box to run commands to confirm cluster is working and tomcat chart applied
+
+      - run:
+          name: install helm and test
+          command: |
+            
+            docker exec hopbox bash -c 'curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3;
+                                        chmod 700 get_helm.sh;
+                                        ./get_helm.sh'
+            docker exec hopbox bash -c 'helm repo add my-repo https://charts.bitnami.com/bitnami;
+                                      helm install my-release my-repo/tomcat'
+            
+            docker cp .circleci/installkubectl.sh hopbox:/
+            docker exec hopbox bash -c 'chmod 700 installkubectl.sh;./installkubectl.sh'
+            sleep 20
+            docker exec hopbox bash -c 'kubectl get pods'
+
+workflows:
+  version: 2
+
+  build:
+    jobs:
+      - init
+      - kind:
+          requires:
+            - init
