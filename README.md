@@ -15,4 +15,4 @@
 
 ## Example
 The test tomcat helm chart is showing in the kind kubernetes cluster
-![image](https://user-images.githubusercontent.com/80027170/220207169-88ce2823-263f-4c1b-ad10-23608c78fb75.png)
+![image](https://user-images.githubusercontent.com/80027170/220771053-0a63d25c-384e-41fb-b9c3-21602fd54fbc.png)
