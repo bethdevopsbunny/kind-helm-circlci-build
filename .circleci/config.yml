@@ -57,7 +57,7 @@ jobs:
       ## use the jump box to run commands to confirm cluster is working and tomcat chart applied
 
       - run:
-          name: install helm and test
+          name: install helm
           command: |
             
             docker exec hopbox bash -c 'curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3;
@@ -65,9 +65,16 @@ jobs:
                                         ./get_helm.sh'
             docker exec hopbox bash -c 'helm repo add my-repo https://charts.bitnami.com/bitnami;
                                       helm install my-release my-repo/tomcat'
+
+      - run:
+          name: install kubectl to test
+          command: |
             
-            docker cp .circleci/installkubectl.sh hopbox:/
-            docker exec hopbox bash -c 'chmod 700 installkubectl.sh;./installkubectl.sh'
+            docker exec hopbox bash -c 'curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"'
+            docker exec hopbox bash -c 'curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"'
+            docker exec hopbox bash -c 'echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check'
+            docker exec hopbox bash -c 'install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl'
+            
             sleep 20
             docker exec hopbox bash -c 'kubectl get pods'
 
