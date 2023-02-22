@@ -75,7 +75,7 @@ jobs:
             docker exec hopbox bash -c 'echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check'
             docker exec hopbox bash -c 'install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl'
             
-            sleep 20
+            sleep 30
             docker exec hopbox bash -c 'kubectl get pods'
 
 workflows:
